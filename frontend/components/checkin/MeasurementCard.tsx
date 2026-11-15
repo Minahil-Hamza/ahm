@@ -124,7 +124,7 @@ export function MeasurementCard({
         <h3 className="font-medium">
           {config.label}
           {config.optional && (
-            <span className="ml-2 rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-500 dark:bg-zinc-800">
+            <span className="ml-2 rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
               Optional
             </span>
           )}
@@ -189,7 +189,7 @@ export function MeasurementCard({
             className="min-h-11"
             aria-label={config.label}
           />
-          <div className="flex justify-between text-sm text-zinc-500">
+          <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
             <span>{config.min}</span>
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {typeof values[config.id] === "number"

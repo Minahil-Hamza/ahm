@@ -19,26 +19,42 @@ import {
  *
  * `region_kidneys` is not in the SPEC table; it was added on request and
  * is fed by the real `water_ml` (hydration / water intake) indicator.
- * There is deliberately no `region_liver`: add one here only if the GLB
- * model actually has a liver mesh (one more entry in this array is all it
- * takes — see docs/DECISIONS.md for the mesh-name list).
+ *
+ * Regions vs organs: a REGION is the unit the app has content and data
+ * for (the SPEC table). An ORGAN is one named mesh in
+ * `public/models/body.glb`. Every organ is separately hoverable and
+ * clickable in 3D and belongs to exactly one region, whose panel it
+ * opens — e.g. the liver, stomach, pancreas and intestines all open the
+ * Gut panel. There is deliberately no separate `region_liver`: the SPEC
+ * has no liver indicator or liver text, and none is invented here.
+ * Regions with no organ mesh (`region_mind`, `region_muscles`,
+ * `region_skin`) are shown as a marker at `hotspot.position`.
  *
  * All `functionText` / `spaceEffectText` is written in our own words; the
  * `sources` links (SPEC Appendix E) are where the background comes from.
  */
+export interface BodyOrgan {
+  /** Exact name of the mesh inside `public/models/body.glb`. Also the
+   * organ's id in the selection store. */
+  meshName: string;
+  label: string;
+}
+
 export interface BodyPart {
   id: string;
   label: string;
-  /** Name of the matching object inside `public/models/body.glb`, if one
-   * is added (SPEC §8.3: "separately named meshes per region"). When the
-   * GLB contains an object with this exact name, the region's hotspot is
-   * placed at that object's centre automatically (`BodyModel.tsx`). No GLB
-   * ships with this repo yet. */
-  meshName: string;
-  /** Hotspot position for the procedural body, and for any GLB that has
-   * no object named `meshName`. Model space: about 1.85 units tall, feet
-   * at y = 0, facing +z (a GLB is auto-fitted to the same box). */
+  /** The organ meshes in `public/models/body.glb` that belong to this
+   * region (SPEC §8.3: "separately named meshes per region"). Organs
+   * missing from the loaded model are skipped; a region left with none
+   * falls back to a marker at `hotspot.position`. */
+  organs: BodyOrgan[];
+  /** Marker position for a region with no organ mesh in the loaded
+   * model. Model space: about 1.85 units tall, feet at y = 0, facing +z
+   * (a GLB is auto-fitted to the same box). */
   hotspot: { position: [number, number, number]; radius: number };
+  /** Side the camera approaches from when this region is selected.
+   * Defaults to "front". */
+  view?: "front" | "back";
   /** Position as a percentage of `Body2DFallback`'s viewBox. */
   position2d: [number, number];
   /** Real `config/thresholds.ts` indicator ids this region's status/value
@@ -64,7 +80,7 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_brain",
     label: "Head / Brain",
-    meshName: "region_brain",
+    organs: [{ meshName: "organ_brain", label: "Brain" }],
     hotspot: { position: [0, 1.74, 0.06], radius: 0.09 },
     position2d: [50, 8],
     indicators: [],
@@ -84,7 +100,7 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_eyes",
     label: "Eyes",
-    meshName: "region_eyes",
+    organs: [{ meshName: "organ_eyes", label: "Eyes" }],
     hotspot: { position: [0, 1.71, 0.14], radius: 0.04 },
     position2d: [50, 11],
     indicators: [],
@@ -99,8 +115,8 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_mind",
     label: "Mind",
-    meshName: "region_mind",
-    hotspot: { position: [0, 1.82, -0.08], radius: 0.06 },
+    organs: [],
+    hotspot: { position: [0.2, 1.8, 0], radius: 0.045 },
     position2d: [58, 6],
     indicators: ["mood", "sleep_hours"],
     symptoms: ["low_mood", "anxiety"],
@@ -119,7 +135,7 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_heart",
     label: "Heart",
-    meshName: "region_heart",
+    organs: [{ meshName: "organ_heart", label: "Heart" }],
     hotspot: { position: [-0.1, 1.35, 0.23], radius: 0.09 },
     position2d: [44, 28],
     indicators: ["heart_rate", "bp_systolic", "bp_diastolic"],
@@ -135,7 +151,11 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_lungs",
     label: "Lungs",
-    meshName: "region_lungs",
+    organs: [
+      { meshName: "organ_lung_left", label: "Left lung" },
+      { meshName: "organ_lung_right", label: "Right lung" },
+      { meshName: "organ_trachea", label: "Windpipe" },
+    ],
     hotspot: { position: [0.1, 1.3, 0.2], radius: 0.11 },
     position2d: [58, 27],
     indicators: ["spo2"],
@@ -155,7 +175,10 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_immune",
     label: "Immune system",
-    meshName: "region_immune",
+    organs: [
+      { meshName: "organ_spleen", label: "Spleen" },
+      { meshName: "organ_thymus", label: "Thymus" },
+    ],
     hotspot: { position: [0.16, 1.45, 0.18], radius: 0.06 },
     position2d: [62, 20],
     indicators: ["temperature_c"],
@@ -171,7 +194,13 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_gut",
     label: "Gut",
-    meshName: "region_gut",
+    organs: [
+      { meshName: "organ_stomach", label: "Stomach" },
+      { meshName: "organ_liver", label: "Liver" },
+      { meshName: "organ_pancreas", label: "Pancreas" },
+      { meshName: "organ_small_intestine", label: "Small intestine" },
+      { meshName: "organ_large_intestine", label: "Large intestine" },
+    ],
     hotspot: { position: [0, 1.0, 0.22], radius: 0.1 },
     position2d: [50, 40],
     indicators: ["glucose_mgdl"],
@@ -187,7 +216,8 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_spine",
     label: "Bones / Spine",
-    meshName: "region_spine",
+    organs: [{ meshName: "organ_spine", label: "Spine" }],
+    view: "back",
     hotspot: { position: [0, 1.15, -0.2], radius: 0.08 },
     position2d: [50, 34],
     indicators: ["exercise_minutes"],
@@ -203,8 +233,8 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_muscles",
     label: "Muscles",
-    meshName: "region_muscles",
-    hotspot: { position: [0.46, 1.2, 0.04], radius: 0.08 },
+    organs: [],
+    hotspot: { position: [0.11, 0.72, 0.07], radius: 0.05 },
     position2d: [78, 32],
     indicators: ["exercise_minutes"],
     symptoms: ["muscle_aches"],
@@ -219,8 +249,8 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_skin",
     label: "Skin",
-    meshName: "region_skin",
-    hotspot: { position: [-0.32, 1.46, 0.04], radius: 0.07 },
+    organs: [],
+    hotspot: { position: [-0.3, 1.12, 0.03], radius: 0.045 },
     position2d: [24, 22],
     indicators: [],
     symptoms: ["rash_skin_irritation"],
@@ -235,7 +265,11 @@ export const BODY_PARTS: BodyPart[] = [
   {
     id: "region_kidneys",
     label: "Kidneys",
-    meshName: "region_kidneys",
+    organs: [
+      { meshName: "organ_kidney_left", label: "Left kidney" },
+      { meshName: "organ_kidney_right", label: "Right kidney" },
+    ],
+    view: "back",
     hotspot: { position: [-0.13, 1.03, -0.17], radius: 0.07 },
     position2d: [36, 40],
     indicators: ["water_ml"],
@@ -252,4 +286,15 @@ export const BODY_PARTS: BodyPart[] = [
 
 export function getBodyPart(id: string): BodyPart | undefined {
   return BODY_PARTS.find((r) => r.id === id);
+}
+
+/** The region an organ mesh belongs to, and the organ's own entry. */
+export function findOrgan(
+  meshName: string,
+): { region: BodyPart; organ: BodyOrgan } | undefined {
+  for (const region of BODY_PARTS) {
+    const organ = region.organs.find((o) => o.meshName === meshName);
+    if (organ) return { region, organ };
+  }
+  return undefined;
 }

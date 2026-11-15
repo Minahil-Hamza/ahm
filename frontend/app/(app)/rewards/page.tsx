@@ -49,6 +49,13 @@ export default function RewardsPage() {
             onClick: () => router.push("/checkin"),
           }}
         />
+        {/* SPEC §16 empty state: "0 points, 0 streak, locked badges" —
+            the real (zero) values from the summary, not placeholders. */}
+        <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+          {summary.points} points · {summary.streak.current}-day streak ·{" "}
+          {summary.badges.filter((b) => b.earned).length} of{" "}
+          {summary.badges.length} badges unlocked
+        </p>
       </div>
     );
   }

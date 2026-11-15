@@ -24,6 +24,36 @@ const withPWA = withPWAInit({
     skipWaiting: true,
     runtimeCaching: [
       {
+        // Route prefetch payloads: what the app needs to move between
+        // screens. The plugin's default rule for these keeps them for
+        // only 24 hours, keeps at most 32, and looks them up by a URL
+        // whose query string changes with the current screen, so after a
+        // day offline (or from a different screen) navigation broke.
+        // Here: no expiry, and the query string is ignored on lookup (the
+        // response's Vary header still tells the two payload kinds of a
+        // route apart). Network first, so a new build is picked up when
+        // there is a link; the cache answers when there is not.
+        urlPattern: ({
+          request,
+          sameOrigin,
+          url,
+        }: {
+          request: Request;
+          sameOrigin: boolean;
+          url: URL;
+        }) =>
+          sameOrigin &&
+          request.headers.get("RSC") === "1" &&
+          request.headers.get("Next-Router-Prefetch") === "1" &&
+          !url.pathname.startsWith("/api/"),
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "ahm-route-prefetch",
+          networkTimeoutSeconds: 3,
+          matchOptions: { ignoreSearch: true },
+        },
+      },
+      {
         // Calls to the sync backend must never be answered from a cache.
         // The default "cross-origin" rule would serve a remembered
         // /health reply while offline, making an unreachable server look

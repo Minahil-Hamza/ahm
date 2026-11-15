@@ -192,7 +192,7 @@ export function CheckinWizard() {
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6 px-6 py-8">
       {step !== "result" && (
-        <div className="flex items-center justify-between text-sm text-zinc-500">
+        <div className="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-400">
           <span>
             Step {stepIndex + 1} of {BEFORE_REVIEW.length}
           </span>

@@ -58,7 +58,7 @@ export function MeasurementsStep({
       {GROUPS.map((group, i) => (
         <div key={i} className="flex flex-col gap-3">
           {group.title && (
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
               {group.title}
             </h3>
           )}

@@ -37,11 +37,12 @@ ahm/
 ├─ frontend/
 │  ├─ app/ (app)/{page,checkin,body,trends,learn,reminders,rewards,environment,sync,settings,crew}
 │  ├─ components/ status/ body3d/ crew/ checkin/ charts/ guidance/ game/ reminders/ sync/ common/
-│  ├─ lib/ rules/ db/ sync/ notifications/ gamification/ time/
+│  ├─ lib/ rules/ db/ sync/ notifications/ gamification/ time/ pwa/
 │  ├─ config/ thresholds.ts hazards.ts bodyParts.ts symptoms.ts measurements.ts environments.ts learn.ts badges.ts
 │  ├─ content/ learn/*.md risks.ts riskGuidance.ts sources.ts
 │  ├─ worker/ index.js                     # extra service-worker code (notification click), bundled by next-pwa
-│  ├─ public/ models/body.glb  icons/  manifest
+│  ├─ public/ models/body.glb  draco/  icons/  manifest
+│  ├─ scripts/ check-no-fake-data.mjs  body-model/   # body-model: one-off builder for body.glb (own package.json)
 │  └─ tests/
 └─ backend/
    ├─ app/ main.py deps.py core/ db/ schemas/ routers/ services/rule_engine/ tests/
@@ -61,6 +62,8 @@ npm run build         # next build --webpack (webpack required: see DECISIONS.md
 npm run start         # http://localhost:3100, production mode, PWA active
 npm run test:e2e      # Playwright (Chromium only installed so far)
 npm run format        # prettier --write .
+# Rebuild the 3D body model (needs internet once; output: public/models/body.glb, about 665 KB):
+(cd scripts/body-model && npm install && npm run build)
 # After changing a threshold or a rule, regenerate the server mirror + golden file, then run pytest:
 AHM_WRITE_PARITY=1 npx vitest run tests/rules/serverParity.test.ts
 
@@ -148,14 +151,16 @@ If a chunk is too big for one session, split it yourself into C#a / C#b, add bot
 
 ### [x] C7: 3D body, part 1 (interactive core)
 - **Read:** SPEC 8.1 (3D), 8.3 screen 3, 2
-- **Build:** `Body3D` (client-only), **procedural primitive body first** (capsules/spheres), `RegionHotspot` meshes, raycast selection, hover tooltip, `CameraRig` fly-to + reset, orbit/zoom limits, emissive colour by region status with pulse (reduced-motion safe), `RegionList` accessible alternative, `Body2DFallback` when WebGL is unavailable, neutral grey empty state, performance settings (`dpr`, `frameloop="demand"`).
-- **Done when:** body rotates/zooms, regions are clickable, colours come from the active astronaut's latest evaluation, works with the network off, no CDN requests in the network tab.
+- **Build:** `Body3D` (client-only), anatomical body from `public/models/body.glb` with one `OrganMesh` per organ (raycast selection on the real geometry, hover halo + tooltip, status-coloured glow with pulse for critical), `RegionHotspot` markers for regions without an organ mesh, `CameraRig` fly-to + reset, orbit/zoom limits, `SceneFx` (orbital rings, scan sweep, floor), `RegionList` accessible alternative, `Body2DFallback` when WebGL is unavailable, neutral grey empty state, performance settings (`dpr`, `frameloop="demand"`), reduced-motion safe. `ProceduralBodyModel` remains only as the fallback if the GLB cannot load.
+- **Done when:** body rotates/zooms, every organ is clickable, only one is selected at a time, colours come from the active astronaut's latest evaluation, works with the network off, no CDN requests in the network tab.
+- **Replaced 2026-11-15** (was: primitive capsule body with sphere hotspots). See DECISIONS.md.
 
 ### [x] C8: 3D body, part 2 (content and model)
 - **Read:** SPEC 8.3 screen 3 (panel + mapping table), 2, 3.1
-- **Build:** `config/bodyParts.ts` (function text, spaceflight effect text, hazards, indicators, symptoms per region); `BodyPartPanel` (function, hazard badges, latest real values, recent symptoms, actions, Learn link); support for loading `public/models/body.glb` with named meshes (`region_*`) **if I add the file**, otherwise keep the primitive body; hotspot positions configurable.
-- **Done when:** every region opens a complete panel; swapping in a GLB requires no changes outside `BodyModel.tsx` and `bodyParts.ts`.
-- **Note:** I must download a suitable CC0/CC-BY GLB myself. Do not invent a download. Document the licence/credit in README when added.
+- **Build:** `config/bodyParts.ts` (function text, spaceflight effect text, hazards, indicators, symptoms and **organ meshes** per region); `BodyPartPanel` + `OrganHealthIndicators` (function, hazard badges, latest real values with rule id and trend, recent symptoms, actions, Learn link, sources); `public/models/body.glb` built from BodyParts3D by `scripts/body-model/build.mjs` with named meshes (`organ_*`, `body_skin`).
+- **Done when:** every organ opens its region's complete panel; swapping in another GLB requires no changes outside `BodyModel.tsx` and `bodyParts.ts`.
+- **Model:** BodyParts3D 3.0, CC BY-SA 2.1 Japan; credit and modifications are in README. Do not replace it without updating that table.
+- **Replaced 2026-11-15.** See DECISIONS.md.
 
 ### [x] C9: Reminders and notifications
 - **Read:** SPEC 9
@@ -187,7 +192,7 @@ If a chunk is too big for one session, split it yourself into C#a / C#b, add bot
 - **Build:** reachability check (`/health` with timeout, not just `navigator.onLine`), outbox drain in batches with exponential backoff, `/sync/push` and `/sync/pull?since=`, idempotent upserts by UUID, soft deletes, version conflicts (never lose data), crew registry sync, sync screen (last synced, pending count, Sync now, export/import JSON/CSV).
 - **Done when:** data entered offline reaches the server exactly once after reconnecting, a second device sees the same astronauts and logs, conflicts keep both versions, and tests cover push/pull/conflict/retry.
 
-### [ ] C15: Crew overview (commander/surgeon)
+### [x] C15: Crew overview (commander/surgeon)
 - **Read:** SPEC 8.3 screen 0 and 10, 13
 - **Build:** crew overview table/grid by name and crew ID (last check-in, overall status, flags, sparklines), search/sort, read-only astronaut drill-down using the existing dashboard/trends/body components with `readOnly`, surgeon notes, audit log of who viewed whom.
 - **Done when:** commander/surgeon see every astronaut; astronaut role cannot open the overview; nothing is editable in read-only mode.

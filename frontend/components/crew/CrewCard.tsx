@@ -28,7 +28,7 @@ export function CrewCard({
       <span className="text-sm text-zinc-600 dark:text-zinc-400">
         {ROLE_LABELS[astronaut.role]}
       </span>
-      <span className="text-sm text-zinc-500 dark:text-zinc-500">
+      <span className="text-sm text-zinc-600 dark:text-zinc-400">
         {lastCheckinDate
           ? `Last check-in: ${lastCheckinDate}`
           : "No check-in yet"}

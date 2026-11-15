@@ -28,7 +28,7 @@ export function Body2DFallback({
   onHoverChange,
 }: Body2DFallbackProps) {
   return (
-    <div className="relative mx-auto aspect-[3/4] w-full max-w-xs">
+    <div className="relative mx-auto aspect-3/4 w-[min(18rem,75%)]">
       <svg
         viewBox="0 0 100 100"
         className="absolute inset-0 h-full w-full"

@@ -8,6 +8,7 @@ import { CrewScreen } from "@/components/crew/CrewScreen";
 import { useReminderScheduler } from "@/lib/notifications/useReminderScheduler";
 import { useActiveAstronautStore } from "@/lib/store/activeAstronaut";
 import { useAutoLock } from "@/lib/store/useAutoLock";
+import { useOfflineRouteWarmup } from "@/lib/pwa/useOfflineRouteWarmup";
 import { startSync, stopSync } from "@/lib/sync/controller";
 
 /** SPEC §8.3 screen 0 is "the first screen of the app" — whenever no
@@ -19,6 +20,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   // SPEC §9: runs on every screen, locked or not, so a reminder still
   // fires after the app auto-locks (see docs/DECISIONS.md).
   useReminderScheduler();
+  // Rule 1 (offline-first): stores every screen for offline use on the
+  // first online visit, locked or not. Background only.
+  useOfflineRouteWarmup();
   // SPEC 7.4: background sync. Optional and non-blocking: with no server
   // set up, or no link, it does nothing and the app is unaffected. It
   // also runs while the app is locked, like the reminder scheduler.

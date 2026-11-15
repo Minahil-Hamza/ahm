@@ -221,7 +221,10 @@ export default function SyncPage() {
           <dd>{formatWhen(lastSyncedAt ?? undefined)}</dd>
           <dt className="text-zinc-600 dark:text-zinc-400">Waiting to sync</dt>
           <dd>
-            {pending ?? 0} {pending === 1 ? "change" : "changes"}
+            {/* SPEC §16 empty state: "Nothing to sync". */}
+            {pending
+              ? `${pending} ${pending === 1 ? "change" : "changes"}`
+              : "Nothing to sync"}
           </dd>
         </dl>
         {config && (

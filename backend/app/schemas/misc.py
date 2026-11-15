@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, field_validator
 from app.schemas.common import FollowupResponse, OwnedOut, UtcDatetime
 
 TIME_PATTERN = r"^([01]\d|2[0-3]):[0-5]\d$"
-ALL_DAYS = [1, 2, 3, 4, 5, 6, 7]
+ALL_DAYS = [1, 2, 3, 4, 5, 6, 7]  # no-fake-data-ok: weekdays Mon..Sun, not health data
 
 
 def _check_days(value: list[int] | None) -> list[int] | None:

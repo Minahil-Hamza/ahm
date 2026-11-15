@@ -60,7 +60,7 @@ export function CrewScreen() {
             setSelectedId(null);
             setPinError(null);
           }}
-          className="min-h-11 text-sm text-zinc-500 underline"
+          className="min-h-11 text-sm text-zinc-600 underline dark:text-zinc-400"
         >
           Back to crew
         </button>
@@ -123,7 +123,7 @@ export function CrewScreen() {
             <button
               type="button"
               onClick={() => setShowRegisterForm(false)}
-              className="min-h-11 self-start text-sm text-zinc-500 underline"
+              className="min-h-11 self-start text-sm text-zinc-600 underline dark:text-zinc-400"
             >
               Cancel
             </button>

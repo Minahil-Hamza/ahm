@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { ChevronLeft, Eye, Lock } from "lucide-react";
 import {
@@ -280,9 +280,20 @@ export default function CrewOverviewPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("dashboard");
 
-  // One audit entry each time an astronaut's data is opened.
+  // One audit entry each time an astronaut's data is opened. The ref
+  // stops a repeated effect run (React strict mode, a role re-read) from
+  // logging the same opening twice; closing the drill-down clears it.
+  const loggedOpen = useRef<string | null>(null);
   useEffect(() => {
-    if (viewerId && allowed && openId) void recordCrewView(viewerId, openId);
+    if (!openId) {
+      loggedOpen.current = null;
+      return;
+    }
+    if (!viewerId || !allowed) return;
+    const key = `${viewerId}:${openId}`;
+    if (loggedOpen.current === key) return;
+    loggedOpen.current = key;
+    void recordCrewView(viewerId, openId);
   }, [viewerId, allowed, openId]);
 
   if (!viewerId || !viewer) return null;

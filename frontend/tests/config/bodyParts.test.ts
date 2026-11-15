@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BODY_PARTS, getBodyPart } from "@/config/bodyParts";
+import { BODY_PARTS, findOrgan, getBodyPart } from "@/config/bodyParts";
 import { getIndicatorConfig } from "@/config/thresholds";
 import { isSymptomId } from "@/config/symptoms";
 
@@ -39,17 +39,41 @@ describe("BODY_PARTS", () => {
     }
   });
 
-  it("gives every region a unique mesh name and at least one source link", () => {
-    const meshNames = BODY_PARTS.map((r) => r.meshName);
+  it("gives every organ a unique mesh name and every region a source link", () => {
+    const meshNames = BODY_PARTS.flatMap((r) =>
+      r.organs.map((o) => o.meshName),
+    );
     expect(new Set(meshNames).size).toBe(meshNames.length);
+    for (const name of meshNames) expect(name).toMatch(/^organ_[a-z_]+$/);
     for (const region of BODY_PARTS) {
-      expect(region.meshName).toBe(region.id);
+      for (const organ of region.organs) {
+        expect(organ.label.length).toBeGreaterThan(0);
+        expect(findOrgan(organ.meshName)?.region.id).toBe(region.id);
+      }
       expect(region.sources.length).toBeGreaterThan(0);
       for (const source of region.sources) {
         expect(source.label.length).toBeGreaterThan(0);
         expect(source.url).toMatch(/^https:\/\/www\.nasa\.gov\//);
       }
     }
+  });
+
+  it("maps the organs the 3D model must expose to a region", () => {
+    for (const name of [
+      "organ_brain",
+      "organ_heart",
+      "organ_lung_left",
+      "organ_lung_right",
+      "organ_liver",
+      "organ_stomach",
+      "organ_kidney_left",
+      "organ_kidney_right",
+      "organ_small_intestine",
+      "organ_large_intestine",
+    ]) {
+      expect(findOrgan(name), name).toBeDefined();
+    }
+    expect(findOrgan("organ_liver")?.region.id).toBe("region_gut");
   });
 
   it("links the kidneys to the hydration / water intake indicator", () => {
@@ -59,7 +83,7 @@ describe("BODY_PARTS", () => {
     expect(kidneys?.spaceEffectText).toMatch(/[Dd]ehydration/);
   });
 
-  it("has no liver region (only added if the model has a liver mesh)", () => {
+  it("has no separate liver region (the liver mesh opens the Gut panel)", () => {
     expect(getBodyPart("region_liver")).toBeUndefined();
   });
 });

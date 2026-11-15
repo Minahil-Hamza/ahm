@@ -69,7 +69,7 @@ export function OfflineBadge() {
         <WifiOff size={16} aria-hidden="true" />
       )}
       {online ? "Online" : "Offline"}
-      <span className="text-zinc-400 dark:text-zinc-500">· {detail}</span>
+      <span className="text-zinc-600 dark:text-zinc-400">· {detail}</span>
     </Link>
   );
 }

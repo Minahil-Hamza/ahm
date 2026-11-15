@@ -245,7 +245,8 @@ export function HomeDashboard({
               {missedConfig.label}: {missedAlert.message}
             </p>
             <p className="text-zinc-600 dark:text-zinc-400">
-              Last check-in: {latestLog?.date}. Start a check-in when you can.
+              Last check-in: {latestLog?.date}.
+              {!readOnly && " Start a check-in when you can."}
             </p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Rule {missedAlert.id} · {missedAlert.windowDays} days missed

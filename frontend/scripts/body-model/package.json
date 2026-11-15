@@ -1,0 +1,16 @@
+{
+  "name": "ahm-body-model-build",
+  "private": true,
+  "type": "module",
+  "description": "One-off build tool for frontend/public/models/body.glb. Not part of the app bundle.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@gltf-transform/core": "^4.1.0",
+    "@gltf-transform/extensions": "^4.1.0",
+    "@gltf-transform/functions": "^4.1.0",
+    "draco3dgltf": "^1.5.7",
+    "meshoptimizer": "^0.22.0"
+  }
+}

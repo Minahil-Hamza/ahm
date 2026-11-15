@@ -89,7 +89,7 @@ export function MoodStep({
           className="min-h-11"
           aria-label="Stress / fatigue"
         />
-        <div className="flex justify-between text-sm text-zinc-500">
+        <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
           <span>Low</span>
           <span className="font-medium text-zinc-900 dark:text-zinc-100">
             {stress ?? "Skipped"}

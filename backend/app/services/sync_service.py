@@ -103,7 +103,7 @@ def _days_of_week(weekday: int | None) -> list[int]:
     """App: unset = every day, 0..6 with 0 = Sunday. Server column:
     1 = Monday .. 7 = Sunday."""
     if weekday is None:
-        return [1, 2, 3, 4, 5, 6, 7]
+        return [1, 2, 3, 4, 5, 6, 7]  # no-fake-data-ok: weekdays Mon..Sun, not health data
     return [7 if weekday == 0 else weekday]
 
 

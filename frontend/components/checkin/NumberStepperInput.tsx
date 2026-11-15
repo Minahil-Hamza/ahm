@@ -68,7 +68,7 @@ export function NumberStepperInput({
             onChange={(e) => handleTextChange(e.target.value)}
             className="w-full bg-transparent py-2 text-base outline-none"
           />
-          <span className="shrink-0 text-sm text-zinc-500">{unit}</span>
+          <span className="shrink-0 text-sm text-zinc-600 dark:text-zinc-400">{unit}</span>
         </div>
         <button
           type="button"
